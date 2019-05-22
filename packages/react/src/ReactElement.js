@@ -111,6 +111,8 @@ function defineRefPropWarningGetter(props, displayName) {
 const ReactElement = function(type, key, ref, self, source, owner, props) {
   const element = {
     // This tag allows us to uniquely identify this as a React Element
+    // 可以用来判断它是不是一个ReactElement
+    // 注：<App />是一个ReactElement App是Component
     $$typeof: REACT_ELEMENT_TYPE,
 
     // Built-in properties that belong on the element
@@ -167,6 +169,8 @@ const ReactElement = function(type, key, ref, self, source, owner, props) {
 /**
  * Create and return a new ReactElement of the given type.
  * See https://reactjs.org/docs/react-api.html#createelement
+ * JSX：<div>react</div> -> Babel -> React.createElement(div, null, 'react')
+ * 返回一个ReactElement
  */
 export function createElement(type, config, children) {
   let propName;
@@ -179,6 +183,7 @@ export function createElement(type, config, children) {
   let self = null;
   let source = null;
 
+  // 校验ref和key 设置props（无key，ref，self，source）
   if (config != null) {
     if (hasValidRef(config)) {
       ref = config.ref;
@@ -192,6 +197,7 @@ export function createElement(type, config, children) {
     // Remaining properties are added to a new props object
     for (propName in config) {
       if (
+        // 保证使用的hasOwnProperty是Object上的
         hasOwnProperty.call(config, propName) &&
         !RESERVED_PROPS.hasOwnProperty(propName)
       ) {
@@ -202,6 +208,7 @@ export function createElement(type, config, children) {
 
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
+  // 处理children 如果是多个则以数组形式赋值给props.children（React.children API）
   const childrenLength = arguments.length - 2;
   if (childrenLength === 1) {
     props.children = children;
@@ -219,6 +226,7 @@ export function createElement(type, config, children) {
   }
 
   // Resolve default props
+  // 初始化函数组件和class组件设置的defaultProps
   if (type && type.defaultProps) {
     const defaultProps = type.defaultProps;
     for (propName in defaultProps) {
