@@ -22,12 +22,14 @@ function Component(props, context, updater) {
   this.props = props;
   this.context = context;
   // If a component has string refs, we will assign a different object later.
+  // 一般不适用字符串形式的ref
   this.refs = emptyObject;
   // We initialize the default updater but the real one gets injected by the
   // renderer.
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
+// 用来区分是函数组件还是class组件
 Component.prototype.isReactComponent = {};
 
 /**
@@ -136,9 +138,12 @@ function PureComponent(props, context, updater) {
   this.updater = updater || ReactNoopUpdateQueue;
 }
 
+// https://github.com/facebook/react/pull/8741
+// 原型式继承 类似Object.create（但是开发者不希望提供不成熟的shim）
 const pureComponentPrototype = (PureComponent.prototype = new ComponentDummy());
 pureComponentPrototype.constructor = PureComponent;
 // Avoid an extra prototype jump for these methods.
+// 避免查找下一级原型 但保留了继承目的是兼容IE8
 Object.assign(pureComponentPrototype, Component.prototype);
 pureComponentPrototype.isPureReactComponent = true;
 
