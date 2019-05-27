@@ -50,8 +50,10 @@ function escapeUserProvidedKey(text) {
   return ('' + text).replace(userProvidedKeyEscapeRegex, '$&/');
 }
 
+// 大小为10的对象重用池 减少对象的新建与销毁 提升性能
 const POOL_SIZE = 10;
 const traverseContextPool = [];
+// 从池子中取一个对象赋值
 function getPooledTraverseContext(
   mapResult,
   keyPrefix,
@@ -77,6 +79,7 @@ function getPooledTraverseContext(
   }
 }
 
+// 用完后初始化对象 再放回池子
 function releaseTraverseContext(traverseContext) {
   traverseContext.result = null;
   traverseContext.keyPrefix = null;
@@ -89,6 +92,7 @@ function releaseTraverseContext(traverseContext) {
 }
 
 /**
+ * 遍历+平铺传入的children
  * @param {?*} children Children tree container.
  * @param {!string} nameSoFar Name of the key path so far.
  * @param {!function} callback Callback to invoke with each child found.
@@ -129,6 +133,7 @@ function traverseAllChildrenImpl(
   }
 
   if (invokeCallback) {
+    // children是可渲染的元素时 调用mapSingleChildIntoContext
     callback(
       traverseContext,
       children,
@@ -157,6 +162,7 @@ function traverseAllChildrenImpl(
       );
     }
   } else {
+    // 如果不是数组 就判断children是否支持迭代 children[Symbol.iterator]是不是函数
     const iteratorFn = getIteratorFn(children);
     if (typeof iteratorFn === 'function') {
       if (__DEV__) {
@@ -285,6 +291,7 @@ function forEachChildren(children, forEachFunc, forEachContext) {
   releaseTraverseContext(traverseContext);
 }
 
+// 执行回调函数 并平铺返回的mappedChild
 function mapSingleChildIntoContext(bookKeeping, child, childKey) {
   const {result, keyPrefix, func, context} = bookKeeping;
 
@@ -309,10 +316,12 @@ function mapSingleChildIntoContext(bookKeeping, child, childKey) {
 }
 
 function mapIntoWithKeyPrefixInternal(children, array, prefix, func, context) {
+  // 根据遍历的层级、children传入的key以及回调中返回的key 设置相应的key 
   let escapedPrefix = '';
   if (prefix != null) {
     escapedPrefix = escapeUserProvidedKey(prefix) + '/';
   }
+  // 从对象池中取出遍历上下文对象
   const traverseContext = getPooledTraverseContext(
     array,
     escapedPrefix,
@@ -320,6 +329,7 @@ function mapIntoWithKeyPrefixInternal(children, array, prefix, func, context) {
     context,
   );
   traverseAllChildren(children, mapSingleChildIntoContext, traverseContext);
+  // 释放遍历上下文对象
   releaseTraverseContext(traverseContext);
 }
 
@@ -340,12 +350,14 @@ function mapChildren(children, func, context) {
   if (children == null) {
     return children;
   }
+  // 遍历props.children 并将返回值放入result
   const result = [];
   mapIntoWithKeyPrefixInternal(children, result, null, func, context);
   return result;
 }
 
 /**
+ * 计算children平铺后的数量 如果第一层是null则为0 但如果是内部有null算1个
  * Count the number of children that are typically specified as
  * `props.children`.
  *
