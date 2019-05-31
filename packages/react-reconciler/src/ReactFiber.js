@@ -227,12 +227,12 @@ function FiberNode(
   this.key = key;
   this.elementType = null;
   this.type = null;
-  this.stateNode = null;
+  this.stateNode = null; // 对应的组件或DOM
 
   // Fiber
-  this.return = null;
-  this.child = null;
-  this.sibling = null;
+  this.return = null; // 父节点的Fiber
+  this.child = null; // 第一个子节点的Fiber
+  this.sibling = null; // 下一个相邻节点的Fiber
   this.index = 0;
 
   this.ref = null;
@@ -255,6 +255,7 @@ function FiberNode(
   this.expirationTime = NoWork;
   this.childExpirationTime = NoWork;
 
+  // 保存old Fiber
   this.alternate = null;
 
   if (enableProfilerTimer) {

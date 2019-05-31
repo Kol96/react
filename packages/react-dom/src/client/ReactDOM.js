@@ -367,6 +367,7 @@ function ReactRoot(
   isConcurrent: boolean,
   hydrate: boolean,
 ) {
+  // 创建了一个FiberRoot={current:Fiber}
   const root = createContainer(container, isConcurrent, hydrate);
   this._internalRoot = root;
 }
@@ -502,6 +503,7 @@ function legacyCreateRootFromDOMContainer(
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
+    // 删除container下的元素
     while ((rootSibling = container.lastChild)) {
       if (__DEV__) {
         if (
@@ -552,7 +554,7 @@ function legacyRenderSubtreeIntoContainer(
   // member of intersection type." Whyyyyyy.
   let root: Root = (container._reactRootContainer: any);
   if (!root) {
-    // Initial mount
+    // Initial mount 第一次加载时没有root
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
@@ -688,6 +690,7 @@ const ReactDOM: Object = {
         enableStableConcurrentModeAPIs ? 'createRoot' : 'unstable_createRoot',
       );
     }
+    // 客户端渲染
     return legacyRenderSubtreeIntoContainer(
       null,
       element,

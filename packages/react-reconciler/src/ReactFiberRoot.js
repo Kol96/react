@@ -148,8 +148,8 @@ export function createFiberRoot(
     }: FiberRoot);
   } else {
     root = ({
-      current: uninitializedFiber,
-      containerInfo: containerInfo,
+      current: uninitializedFiber, // root的Fiber
+      containerInfo: containerInfo, // root的dom
       pendingChildren: null,
 
       pingCache: null,
@@ -175,6 +175,7 @@ export function createFiberRoot(
     }: BaseFiberRootProperties);
   }
 
+  // FiberRoot通过current引用RootFiber；RootFiber通过stateNode引用FiberRoot
   uninitializedFiber.stateNode = root;
 
   // The reason for the way the Flow types are structured in this file,

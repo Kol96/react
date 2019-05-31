@@ -9,6 +9,9 @@
 
 export type SideEffectTag = number;
 
+// 使用二进制操作effectTag
+// 增加：effectTag |= Update
+// 删除：effectTag &= ~Update
 // Don't change these two values. They're used by React Dev Tools.
 export const NoEffect = /*              */ 0b000000000000;
 export const PerformedWork = /*         */ 0b000000000001;
