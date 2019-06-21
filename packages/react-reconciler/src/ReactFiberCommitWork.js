@@ -390,6 +390,7 @@ function commitLifeCycles(
     case FunctionComponent:
     case ForwardRef:
     case SimpleMemoComponent: {
+      // hook的清除上一次的effect和执行新的effect
       commitHookEffectList(UnmountLayout, MountLayout, finishedWork);
       break;
     }
@@ -524,6 +525,7 @@ function commitLifeCycles(
               break;
           }
         }
+        // ReactDOM.render的回调
         commitUpdateQueue(
           finishedWork,
           updateQueue,
@@ -543,6 +545,7 @@ function commitLifeCycles(
       if (current === null && finishedWork.effectTag & Update) {
         const type = finishedWork.type;
         const props = finishedWork.memoizedProps;
+        // 看看元素要不要auto-focus
         commitMount(instance, type, props, finishedWork);
       }
 
@@ -874,6 +877,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
   // node. Unfortunately, if multiple insertions are done in a row we have to
   // search past them. This leads to exponential search for the next sibling.
   // TODO: Find a more efficient way to do this.
+  // 找当前fiber相邻的fiber（宿主元素）
   let node: Fiber = fiber;
   siblings: while (true) {
     // If we didn't find anything, let's try the next sibling.
@@ -921,6 +925,7 @@ function commitPlacement(finishedWork: Fiber): void {
   }
 
   // Recursively insert all host nodes into the parent.
+  // 向上递归查找最近的一个宿主元素（HostComponent，HostRoot，HostPortal）
   const parentFiber = getHostParentFiber(finishedWork);
 
   // Note: these two variables *must* always be updated together.
@@ -958,15 +963,18 @@ function commitPlacement(finishedWork: Fiber): void {
   // We only have the top Fiber that was inserted but we need to recurse down its
   // children to find all the terminal nodes.
   let node: Fiber = finishedWork;
+  // 加Placement标记的Fiber不一定是HostComponent，如果是其他类型得去它底下查查把直接的子HostComponent一一加入parent中
   while (true) {
     if (node.tag === HostComponent || node.tag === HostText) {
       if (before) {
+        // 在sibling前插入当前节点 insertBefore
         if (isContainer) {
           insertInContainerBefore(parent, node.stateNode, before);
         } else {
           insertBefore(parent, node.stateNode, before);
         }
       } else {
+        // appendChild
         if (isContainer) {
           appendChildToContainer(parent, node.stateNode);
         } else {

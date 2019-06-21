@@ -223,11 +223,11 @@ function FiberNode(
   mode: TypeOfMode,
 ) {
   // Instance
-  this.tag = tag;
+  this.tag = tag; // 标记这个Fiber是哪一种类型
   this.key = key;
   this.elementType = null;
   this.type = null;
-  this.stateNode = null; // 对应的组件或DOM
+  this.stateNode = null; // 对应的组件或DOM实例
 
   // Fiber
   this.return = null; // 父节点的Fiber
@@ -245,17 +245,20 @@ function FiberNode(
 
   this.mode = mode;
 
-  // Effects
+  // Effects 当前Fiber自己的Effect
   this.effectTag = NoEffect;
-  this.nextEffect = null;
+  this.nextEffect = null; // 指向父Fiber的Effect 本质就是个Fiber
 
-  this.firstEffect = null;
-  this.lastEffect = null;
+  // 当前Fiber下的子Fiber的Effect List
+  this.firstEffect = null; // 本质就是个Fiber
+  this.lastEffect = null; // 本质就是个Fiber
 
   this.expirationTime = NoWork;
   this.childExpirationTime = NoWork;
 
-  // 保存old Fiber
+  // current和workInProgress的Fiber可以通过alternate切换
+  // current表示上次更新完成的Fiber
+  // workInProgress表示当前正在更新的Fiber
   this.alternate = null;
 
   if (enableProfilerTimer) {
@@ -452,9 +455,11 @@ export function createFiberFromTypeAndProps(
   // The resolved type is set if we know what the final type will be. I.e. it's not lazy.
   let resolvedType = type;
   if (typeof type === 'function') {
+    // 判断是不是Class组件
     if (shouldConstruct(type)) {
       fiberTag = ClassComponent;
     }
+    // 如果不是class组件 除了function组件 还可能是一个带render方法与其他生命周期的对象
   } else if (typeof type === 'string') {
     fiberTag = HostComponent;
   } else {

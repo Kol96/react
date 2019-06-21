@@ -153,6 +153,7 @@ function scheduleRootUpdate(
   }
 
   flushPassiveEffects();
+  // 如果队列不存在则创建队列 之后再将update放入队列中
   enqueueUpdate(current, update);
   scheduleWork(current, expirationTime);
 
@@ -287,6 +288,7 @@ export function updateContainer(
   callback: ?Function,
 ): ExpirationTime {
   const current = container.current;
+  // 计算当前时间和过期时间
   const currentTime = requestCurrentTime();
   const expirationTime = computeExpirationForFiber(currentTime, current);
   return updateContainerAtExpirationTime(

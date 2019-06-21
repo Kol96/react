@@ -352,6 +352,9 @@ export function renderWithHooks(
   // Using nextCurrentHook to differentiate between mount/update only works if at least one stateful hook is used.
   // Non-stateful hooks (e.g. context) don't get added to memoizedState,
   // so nextCurrentHook would be null during updates and mounts.
+  // 默认ReactCurrentDispatcher.current是ContextOnlyDispatcher 那个时候使用会抛错
+  // 第一次执行时 为mount阶段 使用HooksDispatcherOnMount
+  // 之后执行时 为update阶段 使用HooksDispatcherOnUpdate
   if (__DEV__) {
     if (nextCurrentHook !== null) {
       ReactCurrentDispatcher.current = HooksDispatcherOnUpdateInDEV;
@@ -372,6 +375,7 @@ export function renderWithHooks(
         : HooksDispatcherOnUpdate;
   }
 
+  // 执行函数组件
   let children = Component(props, refOrContext);
 
   if (didScheduleRenderPhaseUpdate) {
@@ -412,7 +416,7 @@ export function renderWithHooks(
   renderedWork.memoizedState = firstWorkInProgressHook;
   renderedWork.expirationTime = remainingExpirationTime;
   renderedWork.updateQueue = (componentUpdateQueue: any);
-  renderedWork.effectTag |= sideEffectTag;
+  renderedWork.effectTag |= sideEffectTag; // 添加相应的effectTag
 
   if (__DEV__) {
     renderedWork._debugHookTypes = hookTypesDev;

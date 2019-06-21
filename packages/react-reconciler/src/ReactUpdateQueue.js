@@ -195,9 +195,11 @@ export function createUpdate(expirationTime: ExpirationTime): Update<*> {
     expirationTime: expirationTime,
 
     tag: UpdateState,
+    // setState的参数
     payload: null,
     callback: null,
 
+    // 队列中下一个update节点
     next: null,
     nextEffect: null,
   };
@@ -210,8 +212,10 @@ function appendUpdateToQueue<State>(
   // Append the update to the end of the list.
   if (queue.lastUpdate === null) {
     // Queue is empty
+    // 如果队列是空 firstUpdate和lastUpdate都是当前的update
     queue.firstUpdate = queue.lastUpdate = update;
   } else {
+    // 如果已有update 那么将新的update放入上一个update的next中 并更新lastUpdate
     queue.lastUpdate.next = update;
     queue.lastUpdate = update;
   }
@@ -390,12 +394,14 @@ function getStateFromUpdate<State>(
             payload.call(instance, prevState, nextProps);
           }
         }
+        // 对应this.setState(() => ({}))
         partialState = payload.call(instance, prevState, nextProps);
         if (__DEV__) {
           exitDisallowedContextReadInDEV();
         }
       } else {
         // Partial state object
+        // 对应 this.setState({})
         partialState = payload;
       }
       if (partialState === null || partialState === undefined) {
@@ -422,6 +428,7 @@ export function processUpdateQueue<State>(
 ): void {
   hasForceUpdate = false;
 
+  // 浅拷贝一个state的更新队列
   queue = ensureWorkInProgressQueueIsAClone(workInProgress, queue);
 
   if (__DEV__) {
@@ -436,9 +443,11 @@ export function processUpdateQueue<State>(
   // Iterate through the list of updates to compute the result.
   let update = queue.firstUpdate;
   let resultState = newBaseState;
+  // 循环队列中的update
   while (update !== null) {
     const updateExpirationTime = update.expirationTime;
     if (updateExpirationTime < renderExpirationTime) {
+      // 优先级小于当前渲染时的优先级
       // This update does not have sufficient priority. Skip it.
       if (newFirstUpdate === null) {
         // This is the first skipped update. It will be the first update in
@@ -456,6 +465,7 @@ export function processUpdateQueue<State>(
     } else {
       // This update does have sufficient priority. Process it and compute
       // a new result.
+      // 获取新的state
       resultState = getStateFromUpdate(
         workInProgress,
         queue,
@@ -466,6 +476,7 @@ export function processUpdateQueue<State>(
       );
       const callback = update.callback;
       if (callback !== null) {
+        // 增加一个Callback的effectTag
         workInProgress.effectTag |= Callback;
         // Set this to null, in case it was mutated during an aborted render.
         update.nextEffect = null;

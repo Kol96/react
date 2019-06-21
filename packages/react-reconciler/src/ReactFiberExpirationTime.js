@@ -28,10 +28,12 @@ export function expirationTimeToMs(expirationTime: ExpirationTime): number {
   return (MAGIC_NUMBER_OFFSET - expirationTime) * UNIT_SIZE;
 }
 
+// 将某个范围内的时间转换成相同的时间 -> 设置相同的过期时间
 function ceiling(num: number, precision: number): number {
   return (((num / precision) | 0) + 1) * precision;
 }
 
+// 计算不同优先级的任务的过期时间
 function computeExpirationBucket(
   currentTime,
   expirationInMs,

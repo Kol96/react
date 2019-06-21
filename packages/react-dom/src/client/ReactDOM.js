@@ -382,6 +382,7 @@ ReactRoot.prototype.render = function(
     warnOnInvalidCallback(callback, 'render');
   }
   if (callback !== null) {
+    // 插入回调 在组件更新后执行_onCommit（依次调用callback）
     work.then(callback);
   }
   updateContainer(children, root, null, work._onCommit);

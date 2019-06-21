@@ -159,6 +159,7 @@ export function reconcileChildren(
     // won't update its child set by applying minimal side-effects. Instead,
     // we will add them all to the child before it gets rendered. That means
     // we can optimize this reconciliation pass by not tracking side-effects.
+    // 上一次渲染如果没有创建过，不会对Child产生sideEffect shouldTrackSideEffects = false
     workInProgress.child = mountChildFibers(
       workInProgress,
       null,
@@ -172,6 +173,7 @@ export function reconcileChildren(
 
     // If we had any progressed work already, that is invalid at this point so
     // let's throw it out.
+    // 上一次渲染已存在，会对Child产生sideEffect
     workInProgress.child = reconcileChildFibers(
       workInProgress,
       current.child,
@@ -521,6 +523,13 @@ function updateProfiler(
   return workInProgress.child;
 }
 
+/**
+ * 添加ref EffectTag
+ * 1、当前Fiber（current）未创建, 但待更新的Fiber上有ref
+ * 2、当前Fiber（current）已存在（对浏览器来说DOM已创建），如果ref有变化
+ * @param {} current 已更新的Fiber
+ * @param {*} workInProgress 待更新的Fiber
+ */
 function markRef(current: Fiber | null, workInProgress: Fiber) {
   const ref = workInProgress.ref;
   if (
@@ -915,25 +924,27 @@ function updateHostComponent(current, workInProgress, renderExpirationTime) {
     tryToClaimNextHydratableInstance(workInProgress);
   }
 
-  const type = workInProgress.type;
-  const nextProps = workInProgress.pendingProps;
+  const type = workInProgress.type; // 标签名
+  const nextProps = workInProgress.pendingProps; // 将要更新的props
   const prevProps = current !== null ? current.memoizedProps : null;
 
   let nextChildren = nextProps.children;
-  const isDirectTextChild = shouldSetTextContent(type, nextProps);
+  const isDirectTextChild = shouldSetTextContent(type, nextProps); // 是否是文本节点(方法在ReactDOM的HostConfig下)
 
   if (isDirectTextChild) {
     // We special case a direct text child of a host node. This is a common
     // case. We won't handle it as a reified child. We will instead handle
     // this in the host environment that also have access to this prop. That
     // avoids allocating another HostText fiber and traversing it.
-    nextChildren = null;
+    nextChildren = null; // 不需要再搞个ChildFiber了
   } else if (prevProps !== null && shouldSetTextContent(type, prevProps)) {
     // If we're switching from a direct text child to a normal child, or to
     // empty, we need to schedule the text content to be reset.
+    // 之前设置了textContext 但本次更新后不需要时的处理
     workInProgress.effectTag |= ContentReset;
   }
 
+  // 增加一个ref EffectTag
   markRef(current, workInProgress);
 
   // Check the host config to see if the children are offscreen/hidden.
@@ -1137,6 +1148,8 @@ function mountIncompleteClassComponent(
   );
 }
 
+// function组件第一次加载时会先进入这个方法
+// 这个function组件有可能会返回一个包含render的对象
 function mountIndeterminateComponent(
   _current,
   workInProgress,
@@ -1207,6 +1220,7 @@ function mountIndeterminateComponent(
   // React DevTools reads this flag.
   workInProgress.effectTag |= PerformedWork;
 
+  // 打扰了 这是个Class组件 value是一个带render方法与其他生命周期的对象
   if (
     typeof value === 'object' &&
     value !== null &&
@@ -1904,6 +1918,7 @@ function beginWork(
     if (oldProps !== newProps || hasLegacyContextChanged()) {
       // If props or context changed, mark the fiber as having performed work.
       // This may be unset if the props are determined to be equal later (memo).
+      // props变了或者context变了
       didReceiveUpdate = true;
     } else if (updateExpirationTime < renderExpirationTime) {
       didReceiveUpdate = false;

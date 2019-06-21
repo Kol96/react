@@ -317,7 +317,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     lastPlacedIndex: number,
     newIndex: number,
   ): number {
-    newFiber.index = newIndex;
+    newFiber.index = newIndex; // 设置这个Fiber在同级节点的位置
     if (!shouldTrackSideEffects) {
       // Noop.
       return lastPlacedIndex;
@@ -327,6 +327,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       const oldIndex = current.index;
       if (oldIndex < lastPlacedIndex) {
         // This is a move.
+        // 右移 如果是左移应该是意味着前面的一个Fiber有删除操作？
         newFiber.effectTag = Placement;
         return lastPlacedIndex;
       } else {
@@ -343,6 +344,7 @@ function ChildReconciler(shouldTrackSideEffects) {
   function placeSingleChild(newFiber: Fiber): Fiber {
     // This is simpler for the single child case. We only need to do a
     // placement for inserting new children.
+    // 给新创建的ChildFiber(同时保证它的ParentFiber在上次渲染时就已存在)加上Placement
     if (shouldTrackSideEffects && newFiber.alternate === null) {
       newFiber.effectTag = Placement;
     }
@@ -837,8 +839,10 @@ function ChildReconciler(shouldTrackSideEffects) {
         lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
         if (previousNewFiber === null) {
           // TODO: Move out of the loop. This only happens for the first run.
+          // 这玩意儿是新创建的第一个子节点
           resultingFirstChild = newFiber;
         } else {
+          // sibling连一连
           previousNewFiber.sibling = newFiber;
         }
         previousNewFiber = newFiber;
@@ -1158,11 +1162,13 @@ function ChildReconciler(shouldTrackSideEffects) {
       created.return = returnFiber;
       return created;
     } else {
+      // 创建非Fragment的Fiber
       const created = createFiberFromElement(
         element,
         returnFiber.mode,
         expirationTime,
       );
+      // 通过element.ref设置对应的ref（函数中做了校验）
       created.ref = coerceRef(returnFiber, currentFirstChild, element);
       created.return = returnFiber;
       return created;

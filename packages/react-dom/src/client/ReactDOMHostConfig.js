@@ -209,7 +209,9 @@ export function createInstance(
     rootContainerInstance,
     parentNamespace,
   );
+  // dom节点上有个key对应最新的fiber(workInProgress)
   precacheFiberNode(internalInstanceHandle, domElement);
+  // dom节点上有个key对应最新的props(newProps)
   updateFiberProps(domElement, props);
   return domElement;
 }

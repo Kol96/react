@@ -628,6 +628,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
+          // 创建DOM元素
           let instance = createInstance(
             type,
             newProps,
@@ -636,11 +637,13 @@ function completeWork(
             workInProgress,
           );
 
+          // append所有直接子dom元素
           appendAllChildren(instance, workInProgress, false, false);
 
           // Certain renderers require commit-time effects for initial mount.
           // (eg DOM renderer supports auto-focus for certain elements).
           // Make sure such renderers get scheduled for later work.
+          // 设置dom元素的属性、事件 如果需要autoFocu 则添加Update标记
           if (
             finalizeInitialChildren(
               instance,
@@ -652,6 +655,7 @@ function completeWork(
           ) {
             markUpdate(workInProgress);
           }
+          // stateNode指向真实dom
           workInProgress.stateNode = instance;
         }
 
